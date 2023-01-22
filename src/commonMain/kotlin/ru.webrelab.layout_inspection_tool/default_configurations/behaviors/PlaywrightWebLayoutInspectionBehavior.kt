@@ -10,7 +10,7 @@ class PlaywrightWebLayoutInspectionBehavior<E>(
     reportFailures: (List<ComparisonFault<E>>) -> Unit
 ) : WebLayoutInspectionBehavior<E>(violation, adapter, actionBeforeTesting, reportFailures) {
 
-    override fun executeJs(js: String, vararg element: Any): Any {
+    override fun executeJs(js: String, vararg element: Any): Any? {
         return adapter.executeJsScript("arg => handler(arg);\n${js}", *element)
     }
 }

@@ -6,37 +6,18 @@ import ru.webrelab.layout_inspection_tool.enums.Environment
 import ru.webrelab.layout_inspection_tool.ifaces.*
 import ru.webrelab.layout_inspection_tool.repositories.Position
 import ru.webrelab.layout_inspection_tool.repositories.TestingPiece
+import ru.webrelab.layout_inspection_tool.screen_utils.determineScreenSize
 
 class Executor<E>(
     private val testingPieces: List<TestingPiece<E>>,
     private val containerElement: E,
-    private val config: IConfiguration<E>,
     private val scenarioName: String,
     private val environment: Environment,
-    private val screenSize: IScreenSize,
     private vararg val pathToScenario: String,
 ) {
-
-    companion object {
-        var config: IConfiguration<*> = object : IConfiguration<Any> {
-            override val measuringTypes: List<IMeasuringType>
-                get() = throw RuntimeException("Configuration does not set")
-            override val behavior: ILayoutInspectionBehavior<Any>
-                get() = throw RuntimeException("Configuration does not set")
-            override val violation: Int
-                get() = 5
-            override val pathToDataset: String
-                get() = throw RuntimeException("Configuration does not set")
-
-        }
-    }
-
-    init {
-        Executor.config = config
-    }
-
     fun execute() {
-        val behavior: ILayoutInspectionBehavior<E> = config.behavior
+        val screenSize = determineScreenSize()
+        val behavior: ILayoutInspectionBehavior<E> = LitConfig.config<E>().behavior
         val adapter: IAdapter<E> = behavior.adapter
         behavior.actionBeforeTesting.invoke()
         behavior.screenPreparation()

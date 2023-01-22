@@ -44,7 +44,13 @@ kotlin {
                 implementation("org.jetbrains.kotlin:kotlin-reflect:1.7.21")
             }
         }
-        val jvmTest by getting
+        val jvmTest by getting {
+            dependencies {
+                implementation("org.seleniumhq.selenium:selenium-chrome-driver:4.6.0")
+                implementation("org.seleniumhq.selenium:selenium-devtools-v107:4.6.0")
+                implementation("com.microsoft.playwright:playwright:1.27.1")
+            }
+        }
         val jsMain by getting {
             dependencies {
                 implementation("com.squareup.okio:okio-nodefilesystem:3.3.0")

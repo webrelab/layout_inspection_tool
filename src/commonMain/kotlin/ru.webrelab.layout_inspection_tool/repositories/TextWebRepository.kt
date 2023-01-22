@@ -3,6 +3,7 @@ package ru.webrelab.layout_inspection_tool.repositories
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import ru.webrelab.layout_inspection_tool.Executor
+import ru.webrelab.layout_inspection_tool.LitConfig
 import ru.webrelab.layout_inspection_tool.ifaces.IConfiguration
 
 @Serializable
@@ -20,8 +21,7 @@ data class TextWebRepository(
 ) : AbstractWebRepository() {
     companion object {
         fun <E> init(element: E): TextWebRepository {
-            @Suppress("UNCHECKED_CAST")
-            val config: IConfiguration<E> = Executor.config as IConfiguration<E>
+            val config: IConfiguration<E> = LitConfig.config()
             val styles = config.behavior.getStyles(element)
             val repository = TextWebRepository(
                 styles["fontFamily"] as String,

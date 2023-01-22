@@ -2,6 +2,7 @@ package ru.webrelab.layout_inspection_tool.screen_difference
 
 import ru.webrelab.layout_inspection_tool.Executor
 import ru.webrelab.layout_inspection_tool.LayoutElement
+import ru.webrelab.layout_inspection_tool.LitConfig
 import ru.webrelab.layout_inspection_tool.LitException
 import ru.webrelab.layout_inspection_tool.ifaces.IConfiguration
 import ru.webrelab.layout_inspection_tool.ifaces.IMeasuringType
@@ -21,8 +22,7 @@ class DefaultWebScanner<E> : IScanner<E> {
     private fun scan(piece: TestingPiece<E>, container: Position?): List<LayoutElement<E>> {
         val layoutElements = mutableListOf<LayoutElement<E>>()
 
-        @Suppress("UNCHECKED_CAST")
-        val config: IConfiguration<E> = Executor.config as IConfiguration<E>
+        val config: IConfiguration<E> = LitConfig.config()
         piece.types.forEach {
             if (it.isPositionOnly) {
                 if (container == null) throw LitException("You must set the container for element with measuring type POSITION")

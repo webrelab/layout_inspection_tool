@@ -2,6 +2,8 @@ package ru.webrelab.layout_inspection_tool.enums
 
 import ru.webrelab.layout_inspection_tool.ifaces.IRepository
 import ru.webrelab.layout_inspection_tool.ifaces.IMeasuringType
+import ru.webrelab.layout_inspection_tool.repositories.Position
+import ru.webrelab.layout_inspection_tool.repositories.Size
 import ru.webrelab.layout_inspection_tool.repositories.TextWebRepository
 import ru.webrelab.layout_inspection_tool.screen_difference.Difference
 
@@ -31,6 +33,18 @@ enum class WebMeasuringType(
         }
 
         override fun compare(other: IRepository): List<Difference> {
+            TODO("Not yet implemented")
+        }
+
+        override fun getSize(): Size {
+            TODO("Not yet implemented")
+        }
+
+        override fun getPosition(): Position {
+            TODO("Not yet implemented")
+        }
+
+        override fun getRelativePosition(container: Position): Position {
             TODO("Not yet implemented")
         }
     }

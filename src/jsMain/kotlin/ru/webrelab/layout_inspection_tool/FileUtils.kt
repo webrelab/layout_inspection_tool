@@ -13,11 +13,11 @@ actual fun getPath(
     screenSize: IScreenSize,
     vararg pathToFile: String
 ): Path {
-    var path = Executor.config.pathToDataset.toPath()
+    var path = LitConfig.config<Any>().pathToDataset.toPath()
         .resolve(environment.toString())
         .resolve(screenSize.toString())
     pathToFile.forEach { path = path.resolve(it) }
-    return path.resolve("${fileName}.{$fileExtension}")
+    return path.resolve("$fileName.$fileExtension")
 }
 
 actual fun isFileExist(path: Path): Boolean {

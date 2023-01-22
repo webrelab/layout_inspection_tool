@@ -2,8 +2,6 @@ package ru.webrelab.layout_inspection_tool
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.*
 import ru.webrelab.layout_inspection_tool.ifaces.IElement
 import ru.webrelab.layout_inspection_tool.ifaces.IMeasuringType
 import ru.webrelab.layout_inspection_tool.ifaces.IRepository
@@ -23,7 +21,4 @@ class LayoutElement<E>(
     val transform: String
 ) : IElement<E> {
     override val id: String = IElement.generateId()
-    companion object {
-        fun <E> decode(json: String): LayoutElement<E> = Json.decodeFromString(json)
-    }
 }

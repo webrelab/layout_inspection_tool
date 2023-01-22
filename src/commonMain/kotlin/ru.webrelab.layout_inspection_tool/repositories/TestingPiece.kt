@@ -1,6 +1,7 @@
 package ru.webrelab.layout_inspection_tool.repositories
 
 import ru.webrelab.layout_inspection_tool.Executor
+import ru.webrelab.layout_inspection_tool.LitConfig
 import ru.webrelab.layout_inspection_tool.ifaces.IMeasuringType
 
 
@@ -16,7 +17,7 @@ class TestingPiece<E>(
 
     private fun getTypes(type: IMeasuringType): List<IMeasuringType> {
         if (type.isComplex) {
-            return Executor.config.measuringTypes
+            return LitConfig.config<E>().measuringTypes
                 .filter { !it.isComplex && !it.isPositionOnly }
                 .toList()
         }

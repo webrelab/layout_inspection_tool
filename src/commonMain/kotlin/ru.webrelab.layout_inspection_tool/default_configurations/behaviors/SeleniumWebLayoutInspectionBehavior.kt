@@ -10,7 +10,7 @@ class SeleniumWebLayoutInspectionBehavior<E>(
     reportFailures: (List<ComparisonFault<E>>) -> Unit
 ) : WebLayoutInspectionBehavior<E>(violation, adapter, actionBeforeTesting, reportFailures) {
 
-    override fun executeJs(js: String, vararg element: Any): Any {
+    override fun executeJs(js: String, vararg element: Any): Any? {
         return adapter.executeJsScript("return (function (e) {return handler(e);}(arguments[0]));\n${js}", *element)
     }
 }

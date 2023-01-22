@@ -24,10 +24,10 @@ abstract class AbstractWebRepository : IWebRepository {
     }
 
     protected fun getAdditionalData(styles: Map<String, Any>) = AdditionalWebData(
-        styles["absoluteLeft"] as Int,
-        styles["absoluteTop"] as Int,
-        styles["absoluteWidth"] as Int,
-        styles["absoluteHeight"] as Int,
+        (styles["absoluteLeft"] as Number).toInt(),
+        (styles["absoluteTop"] as Number).toInt(),
+        (styles["absoluteWidth"] as Number).toInt(),
+        (styles["absoluteHeight"] as Number).toInt(),
         styles["transform"] as String
     )
 }
