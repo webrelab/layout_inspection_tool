@@ -31,6 +31,7 @@ actual fun readFile(path: Path): String {
 }
 
 actual fun writeData(path: Path, data: String) {
+    FileSystem.SYSTEM.createDirectories(path.parent!!)
     FileSystem.SYSTEM.write(path) {
         writeUtf8(data)
     }

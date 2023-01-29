@@ -16,7 +16,9 @@ class WebBoxDrawer<E> : IDrawer<E> {
 
     override fun drawCanvas() {
         if (!canvasIsDraw) {
-            ru.webrelab.layout_inspection_tool.drawCanvas { (LitConfig.config<Any>().behavior as WebLayoutInspectionBehavior).executeJs(it) }
+            ru.webrelab.layout_inspection_tool.drawCanvas { s, e ->
+                (LitConfig.config<Any>().behavior as WebLayoutInspectionBehavior).executeJs(s, e)
+            }
             canvasIsDraw = true
         }
     }
@@ -25,20 +27,20 @@ class WebBoxDrawer<E> : IDrawer<E> {
         drawCanvas()
         comparisonFaultList.forEach {
             if (it.isActualAbsent() || it.hasDiff()) {
-                drawElement(it.getExpected() as IElement<E>, "EXPECTED")
+                drawElement(it.getExpected() as IElement, "EXPECTED")
             }
             if (it.isExpectedAbsent() || it.hasDiff()) {
-                drawElement(it.getActual() as IElement<E>, "ACTUAL")
+                drawElement(it.getActual() as IElement, "ACTUAL")
             }
         }
     }
 
-    override fun drawElement(element: IElement<E>, vararg color: String) {
+    override fun drawElement(element: IElement, vararg color: String) {
         drawCanvas()
         val state = if (color.isEmpty()) null else color[0]
         greedDraw(
-            {s, e -> (LitConfig.config<Any>().behavior as WebLayoutInspectionBehavior).executeJs(s, e)},
-            element as LayoutElement<E>,
+            { s, e -> (LitConfig.config<Any>().behavior as WebLayoutInspectionBehavior).executeJs(s, e) },
+            element as LayoutElement,
             state
         )
     }

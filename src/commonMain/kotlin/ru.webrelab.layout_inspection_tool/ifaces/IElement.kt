@@ -2,13 +2,14 @@ package ru.webrelab.layout_inspection_tool.ifaces
 
 import ru.webrelab.layout_inspection_tool.repositories.Position
 import ru.webrelab.layout_inspection_tool.repositories.Size
-import kotlin.jvm.Transient
 
-interface IElement<E> {
+interface IElement {
     companion object {
-        private var id: Int = 1;
-        fun generateId(): String {
-            return "${id++}"
+        private var id = mutableMapOf<String, Int> ()
+        fun generateId(type: String): String {
+            if (!id.containsKey(type)) id[type] = 0
+            id[type] = id[type]!! + 1
+            return "$type-${id[type]}"
         }
     }
     val id: String
@@ -19,5 +20,4 @@ interface IElement<E> {
     val size: Size
     var container: Position
     val data: IRepository
-    val element: E?
 }

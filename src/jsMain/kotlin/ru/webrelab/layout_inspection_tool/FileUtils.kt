@@ -33,6 +33,7 @@ actual fun readFile(path: Path): String {
 }
 
 actual fun writeData(path: Path, data: String) {
+    NodeJsFileSystem.createDirectories(path.parent!!)
     NodeJsFileSystem.write(path) {
         writeUtf8(data)
     }

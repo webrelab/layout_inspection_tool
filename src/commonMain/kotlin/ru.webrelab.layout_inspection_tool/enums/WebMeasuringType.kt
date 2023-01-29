@@ -1,12 +1,14 @@
 package ru.webrelab.layout_inspection_tool.enums
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import ru.webrelab.layout_inspection_tool.ifaces.IRepository
 import ru.webrelab.layout_inspection_tool.ifaces.IMeasuringType
-import ru.webrelab.layout_inspection_tool.repositories.Position
-import ru.webrelab.layout_inspection_tool.repositories.Size
-import ru.webrelab.layout_inspection_tool.repositories.TextWebRepository
+import ru.webrelab.layout_inspection_tool.repositories.*
 import ru.webrelab.layout_inspection_tool.screen_difference.Difference
 
+@Serializable
+@SerialName("webMeasuringType")
 enum class WebMeasuringType(
     override val id: String,
     override val color: String,
@@ -23,8 +25,50 @@ enum class WebMeasuringType(
         30,
         false,
         false,
-        { TextWebRepository.init(it) }),
+        { TextWebRepository.init(it) }
+    ),
+    DECOR(
+        "descendant-or-self::*[contains(@class, 'measuringTypeDecor')]",
+        "#6c3483",
+        60,
+        false,
+        false,
+        { DecorWebRepository.init(it) }
+    ),
+    SVG(
+        "descendant-or-self::*[name() = 'svg']",
+        "#cd6155",
+        -90,
+        false,
+        false,
+        { SvgWebRepository.init(it) }
+    ),
+    PSEUDO_BEFORE(
+        "descendant-or-self::*[contains(@class, 'measuringBeforeElement')]",
+        "#b9770e",
+        -30,
+        false,
+        false,
+        { PseudoBeforeWebRepository.init(it) }
+    ),
+    PSEUDO_AFTER(
+        "descendant-or-self::*[contains(@class, 'measuringAfterElement')]",
+        "#770eb9",
+        -60,
+        false,
+        false,
+        { PseudoAfterWebRepository.init(it) }
+    ),
+    IMAGE(
+        "descendant-or-self::img",
+        "#148f77",
+        0,
+        false,
+        false,
+        { ImageWebRepository.init(it) }
+    )
     ;
+
     override fun <E> create(element: E): IRepository = createFunction.invoke(element as Any)
 
     private fun fakeObject(): IRepository = object : IRepository {
@@ -32,7 +76,7 @@ enum class WebMeasuringType(
             TODO("Not yet implemented")
         }
 
-        override fun compare(other: IRepository): List<Difference> {
+        override fun compare(actual: IRepository): List<Difference> {
             TODO("Not yet implemented")
         }
 

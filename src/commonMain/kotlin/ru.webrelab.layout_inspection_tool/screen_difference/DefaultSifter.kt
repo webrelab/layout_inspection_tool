@@ -7,14 +7,16 @@ import kotlin.math.max
 class DefaultSifter<E>(
     override val violation: Int
 ) : ISifter<E> {
-    private val expected = mutableMapOf<String, IElement<E>>()
-    private val actual = mutableMapOf<String, IElement<E>>()
+    private val expected = mutableMapOf<String, IElement>()
+    private val actual = mutableMapOf<String, IElement>()
     private val pairs = mutableListOf<ElementPair<E>>()
     private val failList = mutableListOf<ComparisonFault<E>>()
     private val siftedExpected = mutableListOf<String>()
     private val siftedActual = mutableListOf<String>()
+    private val goodPairs = mutableListOf<ElementPair<E>>()
+    private val badPairs = mutableListOf<ElementPair<E>>()
 
-    override fun combine(expected: Map<String, IElement<E>>, actual: Map<String, IElement<E>>) {
+    override fun combine(expected: Map<String, IElement>, actual: Map<String, IElement>) {
         this.expected.putAll(expected)
         this.actual.putAll(actual)
         val registeredExpected = mutableSetOf<String>()
@@ -50,24 +52,45 @@ class DefaultSifter<E>(
     private fun siftEqualsWithViolation() {
         sift(
             { listOf() },
+            { it.equalWithViolation(violation) && it.isEqualId },
+            compareBy { it.fault },
+            { goodPairs.add(it) }
+        )
+        sift(
+            { listOf() },
             { it.equalWithViolation(violation) },
-            compareBy { it.fault }
+            compareBy { it.fault },
+            { goodPairs.add(it) }
         )
     }
 
     private fun siftDifferentData() {
         sift(
-            { it.differenceList },
+            { it.dataDifferenceList },
+            { it.notEqualDataUnderViolation(violation) && it.isEqualId },
+            compareBy { it.fault },
+            { badPairs.add(it) }
+        )
+        sift(
+            { it.dataDifferenceList },
             { it.notEqualDataUnderViolation(violation) },
-            compareBy { it.fault }
+            compareBy { it.fault },
+            { badPairs.add(it) }
         )
     }
 
     private fun siftDifferentSizeAndPosition() {
         sift(
-            { it.differenceList },
+            { it.getMetricDifference(violation) },
+            { it.isDataEqual && it.isEqualId },
+            compareBy { it.fault },
+            { badPairs.add(it) }
+        )
+        sift(
+            { it.getMetricDifference(violation) },
             { it.isDataEqual },
-            compareBy { it.fault }
+            compareBy { it.fault },
+            { badPairs.add(it) }
         )
     }
 
@@ -81,20 +104,29 @@ class DefaultSifter<E>(
     private fun sift(
         diff: (ElementPair<E>) -> List<Difference>,
         filter: (ElementPair<E>) -> Boolean,
-        sort: (Comparator<ElementPair<E>>)
+        sort: (Comparator<ElementPair<E>>),
+        log: (ElementPair<E>) -> Unit
     ) {
         val firstExpected = mutableSetOf<String>()
         val firstActual = mutableSetOf<String>()
-        pairs.filter(filter).sortedWith(sort).forEach {
-            if (!firstExpected.contains(it.expected.id) && !firstActual.contains(it.actual.id)) {
-                siftedExpected.add(it.expected.id)
-                siftedActual.add(it.actual.id)
-                firstExpected.add(it.expected.id)
-                firstActual.add(it.actual.id)
-                val diffList = diff.invoke(it)
-                if (diffList.isNotEmpty()) failList.add(ComparisonFault(it.expected, it.actual, diffList))
+        pairs
+            .filter {
+                !siftedExpected.contains(it.expected.id) &&
+                        !siftedActual.contains(it.actual.id)
             }
-        }
+            .filter(filter)
+            .sortedWith(sort)
+            .forEach {
+                if (!firstExpected.contains(it.expected.id) && !firstActual.contains(it.actual.id)) {
+                    siftedExpected.add(it.expected.id)
+                    siftedActual.add(it.actual.id)
+                    firstExpected.add(it.expected.id)
+                    firstActual.add(it.actual.id)
+                    val diffList = diff.invoke(it)
+                    if (diffList.isNotEmpty()) failList.add(ComparisonFault(it.expected, it.actual, diffList))
+                    log.invoke(it)
+                }
+            }
         clear()
     }
 
@@ -106,17 +138,29 @@ class DefaultSifter<E>(
     override fun getFaultList(): List<ComparisonFault<E>> = failList
 
     class ElementPair<E>(
-        val expected: IElement<E>,
-        val actual: IElement<E>
+        val expected: IElement,
+        val actual: IElement
     ) {
         private val sizeFault = expected.size.fault(actual.size)
         private val positionFault = expected.position.fault(actual.position)
         val fault = max(sizeFault, positionFault)
-        val differenceList = expected.data.compare(actual.data)
-        val isDataEqual = differenceList.isEmpty()
-        fun equalWithViolation(violation: Int) = isDataEqual && sizeFault <= violation && positionFault <= violation
+        val dataDifferenceList = expected.data.compare(actual.data)
+        val isDataEqual = dataDifferenceList.isEmpty()
+        val isEqualId = expected.id == actual.id
+        fun equalWithViolation(violation: Int) = isDataEqual && fault <= violation
         fun notEqualDataUnderViolation(violation: Int) =
-            !isDataEqual && sizeFault <= violation && positionFault <= violation
+            !isDataEqual && fault <= violation
+
+        fun getMetricDifference(violation: Int): List<Difference> {
+            val diff = mutableListOf<Difference>()
+            if (sizeFault > violation) {
+                diff.addAll(expected.size.getDifferences(actual.size))
+            }
+            if (positionFault > violation) {
+                diff.addAll(expected.position.getDifferences(actual.position))
+            }
+            return diff
+        }
     }
 
 }

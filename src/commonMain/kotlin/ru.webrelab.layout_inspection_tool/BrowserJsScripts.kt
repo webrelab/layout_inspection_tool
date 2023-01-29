@@ -19,18 +19,46 @@ fun getStyles(executor: (String, Any) -> Any?, element: Any): List<Map<String, A
     return executor(getStyles, element) as List<Map<String, Any>>
 }
 
-fun drawCanvas(executor: (String) -> Any?) {
-    executor(createCanvas)
+fun drawCanvas(executor: (String, Any) -> Any?) {
+    val params = mutableListOf<Map<String, Any>>()
+
+    LitConfig.config<Any>()
+        .measuringTypes
+        .filter { !it.isComplex }
+        .map {
+            mapOf<String, Any>(
+                "type" to it.toString(),
+                "deg" to it.deg,
+                "color" to it.color
+            )
+        }
+        .forEach(params::add)
+    params.add(
+        mapOf(
+            "type" to "ACTUAL",
+            "deg" to "45",
+            "color" to "red"
+        )
+    )
+    params.add(
+        mapOf(
+            "type" to "EXPECTED",
+            "deg" to "-45",
+            "color" to "green"
+        )
+    )
+
+    executor(createCanvas, params)
 }
 
 fun getViewportSize(executor: (String) -> Any?): Size {
     @Suppress("UNCHECKED_CAST")
-    val response: Map<String, Long> = executor(getViewportSize) as Map<String, Long>
+    val response: Map<String, Number> = executor(getViewportSize) as Map<String, Long>
     return Size(response["width"]?.toInt() as Int, response["height"]?.toInt() as Int)
 }
 
-fun <E> greedDraw(executor: (String, Any) -> Any?, element: LayoutElement<E>, state: String?) {
-    val id = "${if (state == null) "" else "$state-"}${element.type} - ${element.id}"
+fun greedDraw(executor: (String, Any) -> Any?, element: LayoutElement, state: String?) {
+    val id = "${if (state == null) "" else "$state-"}${element.type}-${element.id}"
     val data = mapOf<String, Any>(
         "top" to element.position.top + element.container.top,
         "left" to element.position.left + element.container.left,
@@ -41,6 +69,16 @@ fun <E> greedDraw(executor: (String, Any) -> Any?, element: LayoutElement<E>, st
         "id" to id
     )
     executor(greedDraw, data)
+}
+
+fun svgScan(executor: (String, Any) -> Any?, element: Any): List<Map<String, Any?>> {
+    @Suppress("UNCHECKED_CAST")
+    return executor.invoke(svgScan, element) as List<Map<String, Any?>>
+}
+
+fun pseudoScan(executor: (String, Any) -> Any?, element: Any): Map<String, Map<String, Any>> {
+    @Suppress("UNCHECKED_CAST")
+    return executor.invoke(pseudoElementsAttr, element) as Map<String, Map<String, Any>>
 }
 
 private val createCanvas = """
@@ -81,22 +119,6 @@ private val createCanvas = """
         }
     """.trimIndent()
 
-private val getElementAttributes = """
-        function handler(attributeToElementNameMap) {
-            let keys = Object.keys(attributeToElementNameMap);
-            return attributeToElementNameMap[keys[0]].getAttribute(keys[0]);
-        }
-    """.trimIndent()
-
-private val getElementSize = """
-        function handler(element) {
-            return {
-                width: element.clientWidth === 0 ? element.offsetWidth : element.clientWidth,
-                height: element.clientHeight === 0 ? element.offsetHeight : element.clientHeight
-            }
-        }
-    """.trimIndent()
-
 private val getStyles = """
         function handler(element) {
             let v = window.getComputedStyle(element, null), d = [];
@@ -110,6 +132,7 @@ private val getStyles = """
             let rect = element.getBoundingClientRect()
             d.push({name: 'absoluteLeft', value: rect.left + window.scrollX})
             d.push({name: 'absoluteTop', value: rect.top + window.scrollY})
+            d.push({name: 'innerText', value: element.innerText})
             return d;
         }
     """.trimIndent()
@@ -144,6 +167,12 @@ private val measureDecor = """
             nodes.forEach(node => {
                 [...document.body.getElementsByTagName(node)]
                     .forEach(e => {
+                        let parent = e;
+                        while (true) {
+                            if (parent === null || parent === undefined) break
+                            if (!check(parent)) return;
+                            parent = parent.parentElement
+                        }
                         let c = window.getComputedStyle(e);
                         if (c['display'] !== 'none' && (c['borderRadius'] !== '0px' || c['borderWidth'] !== '0px' ||
                             (c['backgroundColor'] !== 'rgba(0, 0, 0, 0)' || c['backgroundImage'] !== 'none') ||
@@ -152,6 +181,12 @@ private val measureDecor = """
                         }
                     });
             });
+        }
+        
+        function check(node) {
+            let styles = window.getComputedStyle(node)
+            if (styles['display'] === 'none' || styles['opacity'] === '0') return false;
+            return node.offsetWidth + node.offsetHeight > 1;
         }
     """.trimIndent()
 
@@ -191,12 +226,17 @@ private val measureText = """
         function handler() {
             walker(document.body);
         }
-
+        
         function walker(node) {
-            if (node.tagName === 'STYLE' || node.tagName === 'SCRIPT') return
+            if (node.tagName.toLowerCase() === 'style' || node.tagName.toLowerCase() === 'script') return
             let t = node.innerText.replace(/[\n\s]/g, '').toLowerCase();
             if (t === undefined || t.length === 0) return;
-            if (window.getComputedStyle(node).display === 'none') return;
+            let parent = node;
+            while (true) {
+                if (parent === null || parent === undefined) break
+                if (!check(parent)) return;
+                parent = parent.parentElement
+            }
             [...node.children]
                 .forEach(e => {
                     let r = e.innerText;
@@ -207,6 +247,12 @@ private val measureText = """
             if (t.trim().length > 0) {
                 node.classList.add('measuringTypeText');
             }
+        }
+        
+        function check(node) {
+            let styles = window.getComputedStyle(node)
+            if (styles['display'] === 'none' || styles['opacity'] === '0') return false;
+            return node.offsetWidth > 3 && node.offsetHeight > 3;
         }
     """.trimIndent()
 
@@ -219,6 +265,9 @@ private val pseudoElementsAttr = """
         }
 
         function collect(element, type) {
+            let rect = element.getBoundingClientRect()
+            absoluteLeft = rect.left + window.scrollX
+            absoluteTop = rect.top + window.scrollY
             let elementStyles = window.getComputedStyle(element, null);
             let pseudoElementStyles = window.getComputedStyle(element, type);
             let mT = parseInt(pseudoElementStyles.marginTop);
@@ -239,10 +288,10 @@ private val pseudoElementsAttr = """
                 : parseInt(pseudoElementStyles.width);
             return {
                 content: pseudoElementStyles.content,
-                height: height,
-                width: width < 0 ? 0 : width,
-                topOffset: Math.round(t + mT),
-                leftOffset: Math.round(l + mL),
+                absoluteHeight: height,
+                absoluteWidth: width < 0 ? 0 : width,
+                absoluteTop: absoluteTop + Math.round(t + mT),
+                absoluteLeft: absoluteLeft + Math.round(l + mL),
                 background: pseudoElementStyles.background,
                 color: pseudoElementStyles.color,
                 transform: pseudoElementStyles.transform

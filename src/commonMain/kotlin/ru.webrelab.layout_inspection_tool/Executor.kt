@@ -52,7 +52,7 @@ class Executor<E>(
         }
     }
 
-    private fun copyContainers(expected: Map<String, IElement<E>>, actual: Map<String, IElement<E>>) {
+    private fun copyContainers(expected: Map<String, IElement>, actual: Map<String, IElement>) {
        val containers = actual.values
             .distinctBy { it.name }
             .associateTo(mutableMapOf()) {

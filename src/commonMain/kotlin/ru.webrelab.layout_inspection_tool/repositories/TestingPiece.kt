@@ -1,6 +1,5 @@
 package ru.webrelab.layout_inspection_tool.repositories
 
-import ru.webrelab.layout_inspection_tool.Executor
 import ru.webrelab.layout_inspection_tool.LitConfig
 import ru.webrelab.layout_inspection_tool.ifaces.IMeasuringType
 

@@ -5,6 +5,7 @@ import ru.webrelab.layout_inspection_tool.dataToMap
 import ru.webrelab.layout_inspection_tool.ifaces.IRepository
 import ru.webrelab.layout_inspection_tool.ifaces.IWebRepository
 import ru.webrelab.layout_inspection_tool.screen_difference.Difference
+import ru.webrelab.layout_inspection_tool.screen_difference.equalsWithMask
 
 abstract class AbstractWebRepository : IWebRepository {
     @Transient
@@ -19,8 +20,17 @@ abstract class AbstractWebRepository : IWebRepository {
         this.additionalWebData = additionalWebData
     }
 
-    override fun compare(other: IRepository): List<Difference> {
-        TODO("Not yet implemented")
+    override fun compare(actual: IRepository): List<Difference> {
+        val expectedData = dataMap()
+        val actualData = actual.dataMap()
+        val differences = mutableListOf<Difference>()
+        for (field in expectedData.keys) {
+            if (equalsWithMask(expectedData[field]!!, actualData[field]!!)) continue
+            differences.add(
+                Difference(field, expectedData[field]!!, actualData[field]!!)
+            )
+        }
+        return differences
     }
 
     protected fun getAdditionalData(styles: Map<String, Any>) = AdditionalWebData(

@@ -4,8 +4,8 @@ import kotlin.native.concurrent.ThreadLocal
 
 class Difference(
     private val name: String,
-    private val actual: Any,
-    private val expected: Any
+    private val expected: Any,
+    private val actual: Any
 ) {
     @ThreadLocal
     companion object {

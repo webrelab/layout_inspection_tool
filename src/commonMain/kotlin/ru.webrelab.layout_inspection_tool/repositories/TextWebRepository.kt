@@ -2,12 +2,11 @@ package ru.webrelab.layout_inspection_tool.repositories
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import ru.webrelab.layout_inspection_tool.Executor
 import ru.webrelab.layout_inspection_tool.LitConfig
 import ru.webrelab.layout_inspection_tool.ifaces.IConfiguration
 
 @Serializable
-@SerialName("textRepository")
+@SerialName("TextWebRepository")
 data class TextWebRepository(
     val fontFamily: String,
     val fontSize: String,
@@ -17,7 +16,7 @@ data class TextWebRepository(
     val fontVariant: String,
     val textDecoration: String,
     val textShadow: String,
-    val content: String
+    val innerText: String
 ) : AbstractWebRepository() {
     companion object {
         fun <E> init(element: E): TextWebRepository {
@@ -32,7 +31,7 @@ data class TextWebRepository(
                 styles["fontVariant"] as String,
                 styles["textDecoration"] as String,
                 styles["textShadow"] as String,
-                styles["content"] as String
+                styles["innerText"] as String
             )
             repository.setAdditionalData(repository.getAdditionalData(styles))
             return repository

@@ -1,9 +1,11 @@
 package ru.webrelab.layout_inspection_tool.ifaces
 
+import ru.webrelab.layout_inspection_tool.screen_difference.Difference
 import kotlin.math.abs
+import kotlin.math.ceil
 import kotlin.math.max
 
-interface IHasFault : IDecartCoordinates{
+interface IHasFault : IDecartCoordinates {
     fun maxPixelFault(other: IHasFault): Int {
         return max(
             abs(x() - other.x()),
@@ -11,15 +13,23 @@ interface IHasFault : IDecartCoordinates{
         )
     }
 
-    fun maxPercentFault(other: IHasFault): Int {
-        val leftFault = abs(x() - other.x())
-        val leftFaultPercentage = if (x() == 0) 100 else leftFault * 100 / x()
-        val topFault = abs(y() - other.y())
-        val topFaultPercentage = if (y() == 0) 100 else topFault * 100 / y()
-        return leftFaultPercentage.coerceAtMost(topFaultPercentage)
+    fun maxPercentFault(actual: IHasFault): Int {
+        val leftFault = abs(x() - actual.x())
+        val leftFaultPercentage = if (x() == 0) 100 else ceil(leftFault * 100f / x()).toInt()
+        val topFault = abs(y() - actual.y())
+        val topFaultPercentage = if (y() == 0) 100 else ceil(topFault * 100f / y()).toInt()
+        return leftFaultPercentage.coerceAtLeast(topFaultPercentage)
     }
 
-    fun fault(other: IHasFault): Int {
-        return maxPixelFault(other).coerceAtMost(maxPercentFault(other))
+    fun fault(actual: IHasFault): Int {
+        return maxPixelFault(actual).coerceAtMost(maxPercentFault(actual))
+    }
+
+    fun getDifferences(actual: IHasFault): List<Difference>
+
+    fun getDifference(field: String, expected: Int, actual: Int): Difference? {
+        return if (expected != actual)
+            Difference(field, expected, actual)
+        else null
     }
 }

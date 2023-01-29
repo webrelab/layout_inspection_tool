@@ -4,7 +4,7 @@ import ru.webrelab.layout_inspection_tool.screen_difference.ComparisonFault
 
 interface ISifter<E> {
     val violation: Int
-    fun combine(expected: Map<String, IElement<E>>, actual: Map<String, IElement<E>>)
+    fun combine(expected: Map<String, IElement>, actual: Map<String, IElement>)
     fun sift()
     fun getFaultList(): List<ComparisonFault<E>>
 }

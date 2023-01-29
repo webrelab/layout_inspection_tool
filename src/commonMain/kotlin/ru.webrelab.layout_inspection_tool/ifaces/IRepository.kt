@@ -6,7 +6,7 @@ import ru.webrelab.layout_inspection_tool.screen_difference.Difference
 
 interface IRepository {
     fun dataMap(): Map<String, Any>
-    fun compare(other: IRepository): List<Difference>
+    fun compare(actual: IRepository): List<Difference>
     fun getSize(): Size
     fun getPosition(): Position
     fun getRelativePosition(container: Position): Position

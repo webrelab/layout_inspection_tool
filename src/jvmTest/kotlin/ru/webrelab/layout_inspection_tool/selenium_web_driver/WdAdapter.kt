@@ -4,9 +4,7 @@ import org.openqa.selenium.By
 import org.openqa.selenium.Dimension
 import org.openqa.selenium.WebElement
 import org.openqa.selenium.remote.RemoteWebDriver
-import ru.webrelab.layout_inspection_tool.Executor
 import ru.webrelab.layout_inspection_tool.LitConfig
-import ru.webrelab.layout_inspection_tool.default_configurations.behaviors.WebLayoutInspectionBehavior
 import ru.webrelab.layout_inspection_tool.ifaces.IAdapter
 import ru.webrelab.layout_inspection_tool.repositories.Position
 import ru.webrelab.layout_inspection_tool.repositories.Size
@@ -29,9 +27,13 @@ class WdAdapter: IAdapter<WebElement> {
         WdEnv.driver.manage().window().size = Dimension(size.width, size.height)
     }
 
+    override fun getAttribute(attributeName: String, element: WebElement): String {
+        return element.getAttribute(attributeName)
+    }
+
     override fun getPosition(element: WebElement): Position {
         val styles = (LitConfig.config<WebElement>().behavior).getStyles(element)
-        return Position((styles["absoluteLeft"] as Long).toInt(), (styles["absoluteTop"] as Long).toInt())
+        return Position((styles["absoluteLeft"] as Number).toInt(), (styles["absoluteTop"] as Number).toInt())
     }
 
     override fun findElements(element: WebElement, request: String): Collection<WebElement> {
